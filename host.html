@@ -1,184 +1,98 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script>
+	<!-- JQuery CSS -->
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css" />
 
-$(document).ready
-(
-	function()
-	{
-		//setup message objects
-		function createMessage(content, command, args, callback)
-		{
-			//private method
-			function set(value)
-			{
-				return typeof content === 'undefined' ? null : value; 
-			}
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css" />
 
-			//validate the properties
-			content = set(content);
-			command = set(command);
-			args = set(args);
-			callback = set(callback);
-			(
-				function()
-				{
-					var valid = true;
-					
-					//check if command is not a string
-					if (command !== null && typeof command !== 'string') valid = false;
+	<!-- D3 CSS -->
+    <link rel="stylesheet" href="css/nv.d3.css" />
+	  
+	<!-- JQuery library -->
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/2.1.3/jquery-ui.min.js"></script>    		
 
-					//check if args is not an array
-					if (args !== null && (typeof args !== 'object' || args.constructor !== Array)) valid = false;
-
-					//check if callback is not a boolean
-					if (typeof callback !== 'boolean') valid = false;
-
-					//check if both content and command are not given
-					if (content === null && command === null) valid = false;
-					
-					//if invalid then block its use
-					if (valid === false) throw 'invalid message';
-				}
-			)();
-			
-			//setup object
-			var message = {};
-			message.content = content;
-			message.command = command;
-			message.args = args;
-			message.callback = callback;
-			return message;
-		}		
+	<!-- D3 library -->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+	<script type="text/javascript" src="js/nv.d3.js"></script>
 		
-		//setup interface
-		var publicIF = null;
-		(
-			publicIF = function()
-			{
-				//private method
-				function logAction(action)
-				{
-					console.log(action);
-				}
-				
-				//public method
-				publicIF.logAction = logAction;
-				
-				//public method executor
-				publicIF.execute = function(message, callback)
-				{				
-					//if there is no command block the operation
-					if(message.command === null)
-					{
-						throw 'command not specified';
-					}
-				
-					//execute public method
-					var result = publicIF[message.command].apply(null, message.args);
-					
-					//if there is a callback use it to return the result
-					if(typeof callback === 'undefined') return;
-					var answer = createMessage(result, null, null, false);
-					callback(answer);
-				}
-			}
-		)();
-		
-		//declare foreign domain
-		var foreignDomain = "https://dl.dropboxusercontent.com";
-		
-		//get reference to guest
-		var guest = $("#guest").get(0).contentWindow;
+	<!-- Bootstrap 3 library -->
+	<script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 
-		//declare handler for incoming messages
-		function receiveMessage(event)
-		{			
-			//get original event
-			event = event.originalEvent;
-
-			//if the origin is not the known foreign domain stop
-			if ('origin' in event && event.origin === foreignDomain)
-			{
-				//get the message
-				var message = event.data;
-
-				console.log('message', message, 'is received from guest'); 		
-				
-				//process it
-				if(message.content !== null)
-				{
-					$("input#output").val(message.content);
-				}
-				
-				if(message.command !== null)
-				{
-					try
-					{
-						if(message.callback === true)
-						{
-							publicIF.execute(message, sendMessage);
-						}
-						else
-						{
-							publicIF.execute(message);
-						}
-					}
-					catch(e)
-					{
-						console.log(e);
-					}
-				}			
-			}
-		}
-
-		//create listener for message events
-		$(window).on
-		(
-			"message",
-			receiveMessage
-		);
-
-		//declare handler for outgoing messages
-		function sendMessage(message)
-		{
-			console.log('message', message, 'is being sent to guest'); 		
-			guest.postMessage(message, foreignDomain);
-		}
-		
-		$("button").click
-		(
-			function()
-			{
-				//var message = $("input#input").val();
-				var message = {};
-				message.content = null;
-				message.command = 'add';
-				message.args = [2,7,3];
-				message.callback = true;
-				sendMessage(message);
-			}
-		);
-	}
-);
-
-</script>
+	<!-- Taffy library -->
+	<script type="text/javascript" src="js/taffy.js"></script>
+	
+	<!-- host library -->
+	<script type="text/javascript" src="js/host.js"></script>
 </head>
 <body>
 
-	<h1>Domain A</h1>
+<div class="container-fluid">
 
-	<input id="input" type="text" />
-	<button>send data</button>
-	<input id="output" type="text" />
-	
-	<hr/>
+	<div class="row">
+		<div class="col-md-7">	
+			<div class="row">
+				<div class="col-md-12">	
+					<iframe id="guest" frameborder="0" scrolling="no" style="width:100%;height:500px;" src="https://dl.dropboxusercontent.com/u/15318052/Geogebra/guest.html?fdomain=https://dl.dropboxusercontent.com">
+						<p>Your browser does not support iframes.</p>
+					</iframe>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">
+					<div class="btn-group" role="group">
+			<!--		<button id="getStatus">get status</button>   -->
+						<button id="check" type="button" class="btn btn-primary" >check <span class="glyphicon glyphicon-ok"></span></button>
+						<button id="getHelp" type="button" class="btn btn-primary" >get help <span class="glyphicon glyphicon-question-sign"></span></button>
+					</div>
+				</div>
+				<div class="col-md-8">	
+					<input id="setHelp" class="form-control" style="background-color:#265A88;color:#FFF;" disabled>
+				</div>
+			</div>			
+		</div>
+		<div class="col-md-5">
+			<div class="row">
+				<div class="col-md-12">	
+					<div id="readerStatsChart" style="width:100%;height:300px;text-align:center">
+						<h3>Activity Meter</h3>
+						<svg></svg>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">	
+					<div id="readerStatsChart2" style="width:100%;height:300px;text-align:center">
+						<h3>Success Meter</h3>
+						<svg></svg>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>	
 
-	<iframe id="guest" style="width:50%" src="https://dl.dropboxusercontent.com/u/15318052/CrossDomainCom/guest.html">
-		<p>Your browser does not support iframes.</p>
-	</iframe>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="MsgBox" tabindex="-1" role="dialog" aria-labelledby="MsgBoxLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="MsgBoxLabel">Message Box</h4>
+      </div>
+      <div class="modal-body">
+        <div></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
